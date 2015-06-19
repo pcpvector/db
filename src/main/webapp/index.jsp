@@ -15,6 +15,11 @@
 <%@ page import= "com.custardsource.parfait.Monitorable" %>		
 <%@ page import= "com.custardsource.parfait.MonitoringView" %>
 <%@ page import= "com.custardsource.parfait.jdbc.ParfaitDataSource" %>
+<%@ page import="javax.naming.Context" %>
+<%@ page import="javax.naming.InitialContext" %>
+<%@ page import="javax.sql.DataSource" %>
+<%@ page import="java.util.Collection" %>
+<%@ page import="com.custardsource.parfait.timing.ThreadMetric" %>
 <%
 
 PcpMmvWriter bridge=new PcpMmvWriter("IQ",IdentifierSourceSet.DEFAULT_SET);
@@ -23,10 +28,20 @@ try{
     String connection="jdbc:mysql://localhost:3306/EMP";
     Connection con;
     Class.forName("com.mysql.jdbc.Driver").newInstance();
-    //DataSource d;
+    
     con=DriverManager.getConnection(connection,"root","rootaccess");
- //   ParfaitDataSource parfaitDataSource=new ParfaitDataSource(d); 
-    //Collection coll=ParfaitDataSource.getThreadMetrics();
+ 
+    Context initContext = new InitialContext();
+    Context envContext = (Context) initContext.lookup("java:comp/env");
+    DataSource ds = (DataSource) envContext.lookup("jdbc/EMP");
+    Connection conn = ds.getConnection();
+    
+    
+    
+     ParfaitDataSource parfaitDataSource=new ParfaitDataSource(ds); 
+    Collection<ThreadMetric> coll=parfaitDataSource.getThreadMetrics();
+ //   bridge1.startMonitoring(coll);   
+    
     Statement st=con.createStatement();
     ResultSet rs=st.executeQuery("select * from Employees");
     out.print("<table border='1' class='table table-striped table-bordered'>");
